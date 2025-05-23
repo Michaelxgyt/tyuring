@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор программы для Машины Тьюринга</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Дополнительные стили для страницы генератора */
+        .generator-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .generator-form > div {
+            grid-column: span 2;
+        }
+        
+        .generator-form input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            font-size: 16px;
+        }
+        
+        .result-container {
+            background-color: #f5f0e0;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        
+        #program-result {
+            background-color: #2c3e50;
+            color: #9fcc77;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .back-button {
+            margin-top: 20px;
+        }
+        
+        /* Оптимизация для мобильных устройств */
+        @media (max-width: 768px) {
+            .generator-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .generator-form > div,
+            .generator-form input,
+            .generator-form button {
+                width: 100%;
+            }
+            
+            #program-result {
+                max-height: 300px;
+                font-size: 14px;
+            }
+            
+            .back-button button,
+            #copy-button,
+            #generate-button {
+                width: 100%;
+                padding: 12px;
+                margin-bottom: 10px;
+            }
+            
+            .result-container {
+                padding: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #program-result {
+                max-height: 250px;
+                font-size: 13px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Генератор программы для Машины Тьюринга</h1>
+    
+    <div id="controls-container">
+        <p>Генерация программы для преобразования слов:</p>
+        
+        <div class="generator-form">
+            <div>
+                <label for="alphabet-input">Алфавит (символы через запятую):</label>
+                <input type="text" id="alphabet-input" placeholder="Например: 0,1,a,b" value="0,1">
+            </div>
+            
+            <div>
+                <label for="source-word">Исходное слово:</label>
+                <input type="text" id="source-word" placeholder="Например: 101">
+            </div>
+            
+            <div>
+                <label for="target-word">Целевое слово:</label>
+                <input type="text" id="target-word" placeholder="Например: 010">
+            </div>
+            
+            <div>
+                <button id="generate-button">Сгенерировать программу</button>
+            </div>
+        </div>
+        
+        <div class="result-container" style="display: none;">
+            <p>Сгенерированная программа:</p>
+            <div id="program-result"></div>
+            <p class="description">Как это работает: <span id="algorithm-description"></span></p>
+            <button id="copy-button">Копировать программу</button>
+        </div>
+        
+        <div class="back-button">
+            <a href="index.html"><button>Вернуться к машине Тьюринга</button></a>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sourceWordInput = document.getElementById('source-word');
+            const targetWordInput = document.getElementById('target-word');
+            const alphabetInput = document.getElementById('alphabet-input');
+            const generateButton = document.getElementById('generate-button');
+            const resultContainer = document.querySelector('.result-container');
+            const programResult = document.getElementById('program-result');
+            const algorithmDescription = document.getElementById('algorithm-description');
+            const copyButton = document.getElementById('copy-button');
+            
+            generateButton.addEventListener('click', () => {
+                const sourceWord = sourceWordInput.value.trim();
+                const targetWord = targetWordInput.value.trim();
+                const alphabetString = alphabetInput.value.trim();
+                
+                // Проверка на пустые поля
+                if (!sourceWord || !targetWord || !alphabetString) {
+                    alert('Пожалуйста, введите алфавит, исходное и целевое слова!');
+                    return;
+                }
+                
+                // Разбираем алфавит
+                const alphabet = alphabetString.split(',').map(s => s.trim()).filter(s => s);
+                
+                if (alphabet.length === 0) {
+                    alert('Алфавит не должен быть пустым!');
+                    return;
+                }
+                
+                // Проверяем, что в алфавите нет повторяющихся символов
+                const uniqueAlphabet = new Set(alphabet);
+                if (uniqueAlphabet.size !== alphabet.length) {
+                    alert('В алфавите не должно быть повторяющихся символов!');
+                    return;
+                }
+                
+                // Проверяем, что слова содержат только символы из алфавита
+                // Экранируем специальные символы регулярных выражений в алфавите
+                const escapedAlphabet = alphabet.map(s => 
+                    s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // Экранирование спецсимволов
+                );
+                
+                const validChars = new RegExp(`^[${escapedAlphabet.join('')}]+$`);
+                if (!validChars.test(sourceWord) || !validChars.test(targetWord)) {
+                    alert(`Слова должны содержать только символы из указанного алфавита: ${alphabet.join(', ')}`);
+                    return;
+                }
+                
+                const program = generateTuringProgram(sourceWord, targetWord, alphabet);
+                programResult.textContent = program.code;
+                algorithmDescription.textContent = program.description;
+                
+                resultContainer.style.display = 'block';
+            });
+            
+            copyButton.addEventListener('click', () => {
+                navigator.clipboard.writeText(programResult.textContent)
+                    .then(() => {
+                        alert('Программа скопирована в буфер обмена!');
+                    })
+                    .catch(err => {
+                        console.error('Ошибка при копировании: ', err);
+                        alert('Не удалось скопировать. Попробуйте выделить текст вручную.');
+                    });
+            });
+            
+            function generateTuringProgram(sourceWord, targetWord, alphabet) {
+                // Создаем программу преобразования исходного слова в целевое
+                let code = '';
+                let description = '';
+                
+                // Создаем множество символов алфавита для более быстрой проверки
+                const alphabetSet = new Set(alphabet);
+                
+                // Проверка на пустые слова
+                if (sourceWord.length === 0 || targetWord.length === 0) {
+                    // Если исходное слово пустое, нам нужно только правило для пустого символа
+                    if (sourceWord.length === 0) {
+                        code += `(q1,0) -> (q0,0,Н)\n`;
+                    } else {
+                        // Если целевое слово пустое, нужно правило только для первого символа исходного слова
+                        code += `(q1,${sourceWord[0]}) -> (q0,0,Н)\n`;
+                    }
+                    
+                    description = 'Программа просто останавливается, так как одно из слов пустое.';
+                    return { code, description };
+                }
+                
+                // Создаем код программы
+                code = generateActualTransformProgram(sourceWord, targetWord, alphabet);
+                
+                // Описание программы
+                description = `Программа преобразует исходное слово "${sourceWord}" в целевое слово "${targetWord}", последовательно изменяя символы в позиции головки.`;
+                
+                return { code, description };
+            }
+            
+            function generateActualTransformProgram(sourceWord, targetWord, alphabet) {
+                // Универсальный случай: Создаем программу, которая работает с правого края слова
+                let result = '';
+                let stateCounter = 1;
+                
+                // Создаем множество символов алфавита для более быстрой проверки
+                const alphabetSet = new Set(alphabet);
+                
+                // Создаем множество символов, которые используются в исходном слове
+                const sourceSymbols = new Set(sourceWord.split(''));
+                
+                // Обрабатываем слово справа налево
+                for (let i = 0; i < Math.max(sourceWord.length, targetWord.length); i++) {
+                    const currentState = `q${stateCounter}`;
+                    const nextState = (i === Math.max(sourceWord.length, targetWord.length) - 1) ? 'q0' : `q${stateCounter + 1}`;
+                    
+                    // Получаем символ целевого слова с правого края
+                    const targetIndex = targetWord.length - 1 - i;
+                    const targetSymbol = targetIndex >= 0 ? targetWord[targetIndex] : '0'; // Если выходим за границу целевого слова, используем '0'
+                    
+                    // Направление: для последнего символа - остановка, для остальных - влево
+                    const direction = (i === Math.max(sourceWord.length, targetWord.length) - 1) ? 'Н' : 'Л';
+                    
+                    // Получаем символ исходного слова для текущего шага
+                    const sourceIndex = sourceWord.length - 1 - i;
+                    const sourceSymbol = sourceIndex >= 0 ? sourceWord[sourceIndex] : '0';
+                    
+                    // Добавляем правило только для текущего символа исходного слова
+                    result += `(${currentState},${sourceSymbol}) -> (${nextState},${targetSymbol},${direction})\n`;
+                    
+                    stateCounter++;
+                }
+                
+                return result;
+            }
+            
+            function generateEqualLengthProgram(sourceWord, targetWord) {
+                let code = '';
+                let stateCounter = 1;
+                
+                // Первое состояние - движение к началу слова
+                code += `(q${stateCounter},0) -> (q${stateCounter},0,Л)\n`;
+                code += `(q${stateCounter},1) -> (q${stateCounter},1,Л)\n`;
+                code += `(q${stateCounter},0) -> (q${stateCounter+1},0,П)\n`; // Обнаружили пустую ячейку слева - переходим к следующему состоянию
+                stateCounter++;
+                
+                // Последовательно заменяем символы
+                for (let i = 0; i < sourceWord.length; i++) {
+                    const targetChar = targetWord[i];
+                    
+                    if (i < sourceWord.length - 1) {
+                        // Заменяем символ и двигаемся вправо
+                        code += `(q${stateCounter},0) -> (q${stateCounter},${targetChar},П)\n`;
+                        code += `(q${stateCounter},1) -> (q${stateCounter},${targetChar},П)\n`;
+                    } else {
+                        // Для последнего символа переходим в завершающее состояние
+                        code += `(q${stateCounter},0) -> (q${stateCounter+1},${targetChar},Н)\n`;
+                        code += `(q${stateCounter},1) -> (q${stateCounter+1},${targetChar},Н)\n`;
+                    }
+                    
+                    if (i < sourceWord.length - 1) {
+                        // Переходим к следующему символу
+                        stateCounter++;
+                    }
+                }
+                stateCounter++;
+                
+                // Завершаем программу
+                code += `(q${stateCounter},0) -> (q0,0,Н)\n`;
+                code += `(q${stateCounter},1) -> (q0,1,Н)\n`;
+                code += `(q${stateCounter},0) -> (q0,0,Н)\n`;
+                
+                const description = `Программа сначала перемещается к началу ленты, затем последовательно заменяет каждый символ исходного слова на соответствующий символ целевого слова, двигаясь справа налево. Начальное состояние - q1, конечное - q0.`;
+                
+                return { code, description };
+            }
+            
+            function generateDifferentLengthProgram(sourceWord, targetWord) {
+                let code = '';
+                let stateCounter = 1;
+                
+                // Первое состояние - движение к началу ленты
+                // Используем специальное условие для края ленты
+                code += `(q${stateCounter},0) -> (q${stateCounter+1},0,П)\n`; // Начинаем с пустой ленты
+                stateCounter++;
+                
+                // Стираем все символы с ленты (сдвигаем вправо и ставим пустые символы)
+                code += `(q${stateCounter},0) -> (q${stateCounter},0,П)\n`;
+                code += `(q${stateCounter},1) -> (q${stateCounter},0,П)\n`;
+                code += `(q${stateCounter},0) -> (q${stateCounter+1},0,Л)\n`; // Обнаружили пустую ячейку справа - переходим к следующему состоянию
+                stateCounter++;
+                
+                // Возвращаемся к началу ленты
+                code += `(q${stateCounter},0) -> (q${stateCounter},0,Л)\n`;
+                code += `(q${stateCounter},0) -> (q${stateCounter+1},0,П)\n`; // Нашли край ленты, начинаем запись
+                stateCounter++;
+                
+                // Записываем целевое слово
+                for (let i = 0; i < targetWord.length; i++) {
+                    const targetChar = targetWord[i];
+                    
+                    if (i < targetWord.length - 1) {
+                        // Записываем символ и двигаемся вправо
+                        code += `(q${stateCounter},0) -> (q${stateCounter},${targetChar},П)\n`;
+                    } else {
+                        // Для последнего символа переходим в завершающее состояние
+                        code += `(q${stateCounter},0) -> (q${stateCounter+1},${targetChar},Н)\n`;
+                    }
+                    
+                    if (i < targetWord.length - 1) {
+                        // Переходим к следующему символу
+                        stateCounter++;
+                    }
+                }
+                stateCounter++;
+                
+                // Завершаем программу
+                code += `(q${stateCounter},0) -> (q0,0,Н)\n`;
+                code += `(q${stateCounter},1) -> (q0,1,Н)\n`;
+                code += `(q${stateCounter},0) -> (q0,0,Н)\n`;
+                
+                const description = `Программа сначала перемещается к началу ленты, затем стирает все символы и возвращается в начало. После этого она последовательно записывает целевое слово. Начальное состояние - q1, конечное - q0.`;
+                
+                return { code, description };
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Визуализация Машины Тьюринга</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="header-container">
+        <h1>Визуализация Машины Тьюринга</h1>
+        <a href="generate.html" class="fancy-button">Генератор программ</a>
+    </div>
+
+    <div id="tape-container">
+        <p>Лента:</p>
+        <div id="tape">
+            <!-- Лента будет здесь -->
+        </div>
+    </div>
+
+    <div id="controls-container">
+        <p>Управление:</p>
+        <div>
+            <label for="alphabet-input">Алфавит ленты (символы через запятую):</label>
+            <input type="text" id="alphabet-input" value="1,0">
+        </div>
+        <div>
+            <label for="word-input">Входное слово:</label>
+            <input type="text" id="word-input" value="101">
+        </div>
+        <div>
+            <label for="program-input">Программа (правила перехода, каждое правило на новой строке):</label>
+            <textarea id="program-input" rows="10" placeholder="(q1, 0) -> (q2, 1, П)">(q1,0) -> (q1,0,П)
+(q1,1) -> (q1,1,П)
+(q2,0) -> (q0,0,Н)</textarea>
+        </div>
+        <button id="set-config-button">Установить конфигурацию</button>
+        <hr>
+        <button id="run-button">Запуск</button>
+        <button id="pause-button" disabled>Пауза</button>
+        <button id="step-button">Шаг</button>
+        <button id="reset-button">Сброс</button>
+    </div>
+
+    <div id="state-display">
+        <p>Состояние: <span id="current-state-value">q1</span></p>
+        <!-- Текущее состояние будет здесь -->
+    </div>
+
+    <div id="short-steps-container">
+        <p>Краткие шаги выполнения:</p>
+        <div id="short-steps-output" style="height: 100px; overflow-y: auto; border: 1px solid #ccc; background-color: #f9f9f9; padding: 5px; font-family: 'Courier New', Courier, monospace;"></div>
+    </div>
+
+    <div id="program-table-container">
+        <p>Таблица программы:</p>
+        <div id="program-table-output"></div>
+    </div>
+
+    <div id="log-container">
+        <p>Лог выполнения:</p>
+        <div id="log-output" style="height: 200px; overflow-y: auto; border: 1px solid #ccc; background-color: #f9f9f9; padding: 5px; font-family: 'Courier New', Courier, monospace;"></div>
+    </div>
+
+    <div id="speed-controls">
+        <p>Скорость:</p>
+        <select id="speed-select">
+            <option value="slow">Медленно</option>
+            <option value="medium" selected>Средне</option>
+            <option value="fast">Быстро</option>
+        </select>
+    </div>
+
+    <!-- Дополнительные инструменты перемещены в верхнюю часть страницы -->
+
+    <script src="script.js"></script>
+
+    <!-- Audio elements for sound feedback -->
+    <audio id="audio-move" src="sounds/move.wav" preload="auto"></audio>
+    <audio id="audio-write" src="sounds/write.wav" preload="auto"></audio>
+</body>
+</html>

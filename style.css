@@ -1,0 +1,574 @@
+/* --- Overall Theme --- */
+body {
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    margin: 0;
+    padding: 15px;
+    background-color: #c7b299; /* Aged paper / light wood */
+    color: #3a3a3a; /* Darker text for readability */
+    background-image: linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+    background-size: 20px 20px; /* Subtle grid/noise */
+}
+
+/* --- Header Container and Fancy Button --- */
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+h1 {
+    text-align: center;
+    color: #5a3e2b; /* Dark brown, like old ink */
+    font-size: 2.5em;
+    margin-bottom: 0;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+    flex: 1;
+}
+
+.fancy-button {
+    display: inline-block;
+    background-color: #8c7853; /* Wood color matching border */
+    color: #fff;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    border: 2px solid #6a5b3f;
+}
+
+.fancy-button:hover {
+    background-color: #6a5b3f;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0,0,0,0.3);
+}
+
+/* --- Main Containers Styling --- */
+#tape-container,
+#controls-container,
+#state-display,
+#log-container,
+#speed-controls {
+    background-color: #e0dacd; /* Lighter, aged paper */
+    border: 2px solid #8c7853; /* Darker wood/brass border */
+    box-shadow: 3px 3px 8px rgba(0,0,0,0.3), inset 0 0 10px rgba(0,0,0,0.1);
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px; /* Slightly more rounded, bakelite feel */
+}
+
+/* Container Headers (p tags directly inside) */
+#tape-container > p,
+#controls-container > p,
+#state-display > p,
+#log-container > p,
+#speed-controls > p {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #5a3e2b; /* Dark brown */
+    font-size: 1.2em;
+    border-bottom: 1px solid #b0a08a;
+    padding-bottom: 5px;
+}
+
+
+/* --- Tape Styling --- */
+#tape-container {
+    background-color: #705d49; /* Dark wood/metal frame color */
+    padding: 20px;
+    overflow-x: auto;
+    min-height: 170px; /* Accommodate head and tape */
+    position: relative;
+    scroll-behavior: smooth;
+}
+
+.head-indicator {
+    width: 0;
+    height: 0;
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-top: 16px solid #b08d57;
+    position: absolute;
+    top: -25px;
+    left: 50%; /* Центрируем по горизонтали */
+    transform: translateX(-50%); /* Точное центрирование */
+    z-index: 10;
+    filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.5));
+    pointer-events: none; /* Чтобы указатель не блокировал клики */
+}
+
+#tape {
+    display: flex;
+    min-width: fit-content;
+    padding: 15px 10px; /* More vertical padding for tape */
+    background-color: #f5f0e0; /* Old paper/parchment color for tape */
+    border: 3px solid #a09070; /* Darker border for tape */
+    border-radius: 4px;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.2); /* Inner shadow for depth */
+}
+
+.tape-cell {
+    min-width: 55px; /* Slightly wider cells */
+    height: 80px; /* Taller cells */
+    border: 1px solid #b0a08a; /* Cell border, matching container headers */
+    margin-right: 6px; /* Spacing */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 28px; /* Larger symbols */
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #fffdf5; /* Lighter cell background, slight yellow tint */
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.1) inset, 1px 1px 1px rgba(0,0,0,0.1); /* Subtle cell 3D effect */
+    position: relative;
+    color: #403020; /* Darker symbol color */
+    transition: background-color 0.5s ease, transform 0.3s ease, color 0.5s ease;
+}
+
+/* Класс для текущей активной ячейки */
+.tape-cell.active {
+    background-color: #f8e8b0; /* Подсветка текущей ячейки */
+    border: 2px solid #b08d57; /* Выделение текущей ячейки */
+    transform: scale(1.05); /* Небольшое увеличение */
+    z-index: 5; /* Чтобы активная ячейка была поверх других */
+    box-shadow: 0 0 10px rgba(176, 141, 87, 0.7); /* Свечение вокруг активной ячейки */
+}
+
+/* Анимация для изменения содержимого ячейки */
+.tape-cell.modified {
+    animation: flash-content 0.7s ease-in-out;
+}
+
+@keyframes flash-content {
+    0% { color: #403020; }
+    30% { color: #c43b22; font-size: 32px; } /* Ярко-красный цвет для выделения */
+    70% { color: #c43b22; font-size: 32px; }
+    100% { color: #403020; }
+}
+
+/* Perforation effect */
+.tape-cell::before,
+.tape-cell::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    height: 6px;
+    background: 
+        radial-gradient(circle at 3px 3px, #b0a08a 2px, transparent 2px), /* Smaller, more numerous holes */
+        radial-gradient(circle at 3px 3px, #b0a08a 2px, transparent 2px);
+    background-size: 12px 6px; /* Adjust spacing */
+    background-repeat: repeat-x;
+}
+.tape-cell::before { top: 6px; }
+.tape-cell::after { bottom: 6px; }
+
+
+/* --- Controls Styling --- */
+#controls-container div { /* Input groups */
+    margin-bottom: 12px;
+}
+
+#controls-container label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 1em; /* Larger labels */
+    color: #5a3e2b;
+}
+
+#controls-container input[type="text"],
+#controls-container textarea,
+#speed-controls select {
+    width: calc(100% - 20px); /* Full width minus padding */
+    padding: 10px;
+    border: 2px solid #8c7853; /* Consistent border */
+    border-radius: 5px;
+    font-size: 1em;
+    background-color: #fffdf5; /* Light background for inputs */
+    color: #3a3a3a;
+    box-shadow: inset 1px 1px 3px rgba(0,0,0,0.1);
+    font-family: Georgia, 'Times New Roman', Times, serif; /* Consistent font */
+}
+
+#controls-container textarea {
+    min-height: 120px;
+    font-family: 'Courier New', Courier, monospace; /* Rules should be monospaced */
+    resize: vertical;
+}
+
+#controls-container button,
+#speed-controls select {
+    padding: 10px 18px; /* Larger buttons */
+    background-color: #8c7853; /* Button color - wood/bakelite */
+    color: #f5f0e0; /* Light text on dark buttons */
+    border: 1px solid #705d49; /* Darker border */
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+#controls-container button:hover,
+#speed-controls select:hover {
+    background-color: #705d49; /* Darken on hover */
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+}
+
+#controls-container button:active {
+    background-color: #5a3e2b;
+    box-shadow: inset 1px 1px 3px rgba(0,0,0,0.2);
+}
+
+#pause-button:disabled, /* Use more specific selectors if needed */
+#run-button:disabled,
+#step-button:disabled {
+    background-color: #ab9a88; /* Lighter, desaturated for disabled */
+    color: #705d49;
+    cursor: not-allowed;
+    box-shadow: none;
+    text-shadow: none;
+}
+
+#controls-container hr {
+    margin: 20px 0;
+    border: none;
+    border-top: 2px dashed #b0a08a; /* Dashed divider */
+}
+
+/* --- State Display & Log Styling --- */
+#current-state-value {
+    font-weight: bold;
+    color: #b75b3f; /* Burnt orange/rust for state */
+    padding: 4px 8px;
+    background-color: #f5f0e0; /* Match tape background */
+    border: 1px dashed #b08d57; /* Brass dashed border */
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.1em;
+}
+
+#log-output {
+    height: 200px;
+    overflow-y: auto;
+    border: 2px solid #8c7853;
+    background-color: #2c3e50; /* Dark "screen" background */
+    color: #9fcc77; /* Greenish "terminal" text */
+    padding: 12px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.95em;
+    line-height: 1.5;
+    border-radius: 5px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+#log-output p { /* Individual log messages */
+    margin: 0 0 5px 0;
+    text-indent: -1em; /* Hanging indent for step numbers */
+    padding-left: 1em;
+}
+#log-output p[style*="color: red"] { /* Error messages in log */
+    color: #e74c3c !important; /* Brighter red for errors on dark bg */
+    font-weight: bold;
+}
+#log-output p[style*="font-weight: bold"] { /* Halt messages in log */
+    color: #f1c40f !important; /* Yellow for halt messages on dark bg */
+}
+
+
+/* Vibration effect for tape container */
+.vibrate-effect {
+    animation: shake 0.15s linear; /* Keep shake short and sharp */
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
+/* Стили для выпадающего списка */
+#speed-controls select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 30px;
+}
+
+/* --- Стили для кратких шагов выполнения --- */
+#short-steps-container {
+    background-color: #e0dacd;
+    border: 2px solid #8c7853;
+    box-shadow: 3px 3px 8px rgba(0,0,0,0.3), inset 0 0 10px rgba(0,0,0,0.1);
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+}
+
+#short-steps-container > p {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #5a3e2b;
+    font-size: 1.2em;
+    border-bottom: 1px solid #b0a08a;
+    padding-bottom: 5px;
+}
+
+#short-steps-output {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.1em;
+    line-height: 1.8;
+    font-weight: bold;
+    color: #3a3a3a;
+}
+
+.short-step {
+    margin-bottom: 8px;
+    padding: 5px 10px;
+    background-color: #f5f0e0;
+    border-radius: 4px;
+    border-left: 3px solid #8c7853;
+}
+
+.short-step.transition {
+    background-color: #f0e8d0;
+    border-left: 3px solid #a04040;
+}
+
+/* Выделение стрелки перехода */
+.short-step.transition::before {
+    color: #a04040;
+    font-weight: bold;
+}
+
+/* --- Mobile Optimization Media Queries --- */
+
+/* Общие медиа-запросы для мобильных устройств */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    h1 {
+        font-size: 1.8em;
+    }
+    
+    .header-container {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .fancy-button {
+        margin-top: 10px;
+    }
+    
+    /* Меньшие ячейки для ленты */
+    .tape-cell {
+        min-width: 45px;
+        height: 60px;
+        font-size: 22px;
+        margin-right: 4px;
+    }
+    
+    /* Для анимации изменения контента */
+    @keyframes flash-content {
+        0% { color: #403020; }
+        30% { color: #c43b22; font-size: 24px; }
+        70% { color: #c43b22; font-size: 24px; }
+        100% { color: #403020; }
+    }
+    
+    /* Адаптируем размер головки для планшетов */
+    .head-indicator {
+        border-left: 14px solid transparent;
+        border-right: 14px solid transparent;
+        border-top: 20px solid #b08d57;
+        top: -30px;
+    }
+    
+    /* Уменьшаем отступы контейнеров */
+    #tape-container, 
+    #controls-container, 
+    #state-display, 
+    #log-container, 
+    #speed-controls,
+    #short-steps-container {
+        padding: 10px;
+        margin-bottom: 15px;
+    }
+    
+    /* Кнопки управления на всю ширину */
+    #controls-container button {
+        display: block;
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+    
+    /* Уменьшаем высоту лога */
+    #log-output {
+        height: 150px !important;
+    }
+}
+
+/* Для совсем маленьких экранов */
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.5em;
+    }
+    
+    .tape-cell {
+        min-width: 40px;
+        height: 50px;
+        font-size: 18px;
+        margin-right: 3px;
+    }
+    
+    @keyframes flash-content {
+        0% { color: #403020; }
+        30% { color: #c43b22; font-size: 20px; }
+        70% { color: #c43b22; font-size: 20px; }
+        100% { color: #403020; }
+    }
+    
+    /* Адаптируем размер головки для мобильных */
+    .head-indicator {
+        border-left: 12px solid transparent;
+        border-right: 12px solid transparent;
+        border-top: 16px solid #b08d57;
+        top: -25px;
+    }
+    
+    /* Для мобильных устройств увеличиваем размеры интерактивных элементов */
+    #controls-container button,
+    #speed-controls select {
+        padding: 12px;
+        font-size: 1.1em; /* Больший размер для удобства нажатия */
+        margin-bottom: 12px;
+    }
+    
+    /* Горизонтальная прокрутка для коротких шагов */
+    #short-steps-output {
+        white-space: nowrap;
+        overflow-x: auto !important;
+    }
+}
+
+/* Улучшение горизонтальной прокрутки для длинных "коротких шагов" */
+#short-steps-output {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 10px !important;
+    scrollbar-width: thin;
+}
+
+/* Добавляем стиль для прокрутки короткого формата */
+#short-steps-output::-webkit-scrollbar {
+    height: 8px;
+}
+
+#short-steps-output::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+#short-steps-output::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+#short-steps-output::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Делаем контейнер ленты более отзывчивым с учетом краев экрана */
+#tape-container {
+    -webkit-overflow-scrolling: touch; /* Для плавной прокрутки на iOS */
+}
+
+/* Добавляем тень к активной ячейке для лучшей видимости на мобильных */
+.tape-cell.active {
+    box-shadow: 0 0 15px rgba(176, 141, 87, 0.8);
+}
+
+/* --- Стили для таблицы программ --- */
+#program-table-container {
+    background-color: #e0dacd;
+    border: 2px solid #8c7853;
+    box-shadow: 3px 3px 8px rgba(0,0,0,0.3), inset 0 0 10px rgba(0,0,0,0.1);
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+}
+
+#program-table-container > p {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #5a3e2b;
+    font-size: 1.2em;
+    border-bottom: 1px solid #b0a08a;
+    padding-bottom: 5px;
+}
+
+#program-table-output {
+    overflow-x: auto;
+    padding: 10px;
+}
+
+.program-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #f5f0e0;
+}
+
+.program-table th, .program-table td {
+    border: 1px solid #b0a08a;
+    padding: 8px 12px;
+    text-align: center;
+}
+
+.program-table th {
+    background-color: #d7c9b8;
+    color: #5a3e2b;
+    font-weight: bold;
+}
+
+.program-table .current-state {
+    background-color: #f8e8b0;
+    font-weight: bold;
+}
+
+.program-table .halt-state {
+    background-color: #e8c8a0;
+}
+
+/* Медиа-запрос для мобильных устройств */
+@media (max-width: 768px) {
+    #program-table-container {
+        padding: 10px;
+    }
+    
+    .program-table th, .program-table td {
+        padding: 6px;
+        font-size: 0.9em;
+    }
+}
+
+@media (max-width: 480px) {
+    .program-table th, .program-table td {
+        padding: 4px;
+        font-size: 0.8em;
+    }
+}
